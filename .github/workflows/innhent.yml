@@ -1,0 +1,35 @@
+# Kronekikk innhenting v1.2.0
+# Henter valutakurser og lagrer dem i data/ (reserve hvis Norges Bank ikke
+# svarer direkte i nettleseren). Kjører hverdager etter at kursene er satt,
+# og kan startes for hånd under Actions-fanen.
+name: Innhent data
+
+on:
+  schedule:
+    - cron: "23 15,17 * * 1-5"   # UTC, etter Norges Banks kurser ca. kl. 16
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: innhent
+  cancel-in-progress: false
+
+jobs:
+  innhent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Hent data
+        run: python scripts/innhent.py
+      - name: Lagre endringer
+        run: |
+          git config user.name  "kronekikk-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "Oppdater data $(date -u +%F' '%H:%M)"
+          git push

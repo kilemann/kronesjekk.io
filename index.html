@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kronekikk</title>
+<meta name="theme-color" content="#11161c">
+<meta name="description" content="Valutakurser og ukens kundeaviser fra butikkene i Kristiansand.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23f0c040'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='17' text-anchor='middle' fill='%231f4fa3'%3Ekr%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Kronekikk v1.3.0
+   1.3.0  Nytt navn: Kronekikk (tidligere Kronesjekk)
+   1.2.1  Rusta: kjedens felles kundeavis (alle fire er nå kjedeaviser)
+   1.2.0  REMA 1000 og Extra: kjedens felles kundeavis, ikke en bestemt butikk
+   1.1.0  Drivstoff fjernet. Ny rubrikk Butikk: ukens kundeavis for REMA 1000 Tinnheia,
+          Extra Vestheiene (Hellemyr), Europris og Rusta
+   1.0.0  Første versjon: valuta (EUR, USD, DKK, SEK) fra Norges Bank,
+          drivstoff for 15 stasjoner i og rundt Kristiansand med topp 5 + vis alle,
+          modulliste for nye ting senere */
+
+:root{
+  --bg:#e9ecef; --card:#f7f8f9; --ink:#14191f; --muted:#56616c; --line:#cfd6dc;
+  --edge:#14191f; --shadow:#1f4fa3; --hot:#e0401f; --badge:#f0c040;
+  --up:#c0392b; --down:#1e8449;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1418; --card:#182027; --ink:#e8edf1; --muted:#93a1ad; --line:#2c3842;
+  --edge:#c9d3db; --shadow:#3f7fe8; --hot:#ff6a45; --badge:#f0c040;
+  --up:#ff7b6b; --down:#5fd38d; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);
+  padding-block:28px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:30px}
+
+header{display:flex;align-items:center;gap:16px}
+.badge{flex:none;width:60px;height:60px;border-radius:50%;background:var(--badge);display:grid;place-items:center}
+.badge svg{width:34px;height:34px}
+header h1{margin:0;font:800 clamp(2rem,7vw,2.8rem)/1 var(--display);text-transform:uppercase;letter-spacing:.01em}
+header p{margin:4px 0 0;color:var(--muted);font-size:.95rem}
+header .grow{flex:1;min-width:0}
+button{font:600 .95rem var(--body);color:var(--ink);background:var(--card);border:2px solid var(--edge);
+  padding:9px 14px;cursor:pointer;border-radius:0}
+button:hover{box-shadow:4px 4px 0 var(--hot)}
+button:focus-visible{outline:3px solid var(--shadow);outline-offset:2px}
+.refresh{flex:none}
+.refresh.spin svg{animation:spin 1s linear infinite}
+.refresh svg{width:18px;height:18px;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:480px){.refresh .lbl{display:none}}
+
+.card{background:var(--card);border:2px solid var(--edge);box-shadow:8px 8px 0 var(--shadow);padding:20px 22px 18px}
+.card h2{margin:0 0 4px;font:800 1.6rem/1.05 var(--display);text-transform:uppercase;letter-spacing:.01em}
+.card .sub{margin:0 0 14px;color:var(--muted);font-size:.88rem}
+.note{color:var(--muted);font-size:.9rem;margin:10px 0 0}
+.err{color:var(--hot)}
+
+/* rader med verdier på linje i faste kolonner */
+.rows{list-style:none;margin:0;padding:0}
+.rows li{display:grid;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.rows li:first-child{border-top:0}
+.num{font:500 1.15rem var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.small{font-size:.8rem;color:var(--muted)}
+
+.fx li{grid-template-columns:3.2rem minmax(0,1fr) auto}
+.fx .val{text-align:right}
+.fx .val .chg{display:block}
+.code{font:800 1.3rem/1 var(--display);letter-spacing:.02em}
+.chg{font:500 .8rem var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.chg.up{color:var(--up)} .chg.down{color:var(--down)}
+
+.shops{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.shop{display:flex;flex-direction:column;gap:6px;border:2px solid var(--edge);padding:14px 14px 12px;min-width:0}
+.shop h3{margin:0;font:800 1.25rem/1.05 var(--display);text-transform:uppercase;letter-spacing:.01em;overflow-wrap:anywhere}
+.shop .small{flex:1}
+.shop a.btn{display:block;text-align:center;font:600 .92rem var(--body);color:var(--card);background:var(--ink);
+  border:2px solid var(--edge);padding:8px 10px;text-decoration:none}
+.shop a.btn:hover{box-shadow:4px 4px 0 var(--hot)}
+.shop a.alt{font-size:.82rem;color:var(--muted);text-align:center}
+.shop a:focus-visible{outline:3px solid var(--shadow);outline-offset:2px}
+.week{font:500 .8rem var(--mono);color:var(--hot)}
+footer{color:var(--muted);font:500 .78rem var(--mono);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
+footer a{color:inherit}
+@media (prefers-reduced-motion:reduce){.refresh.spin svg{animation:none}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="badge" aria-hidden="true">
+      <svg viewBox="0 0 32 32" fill="none" stroke="#1f4fa3" stroke-width="2.2" stroke-linejoin="round">
+        <rect x="2.5" y="8" width="27" height="16" rx="2"/>
+        <circle cx="16" cy="16" r="4.2"/>
+        <path d="M6.5 12v8M25.5 12v8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="grow">
+      <h1>Kronekikk</h1>
+      <p>Valuta og ukens kundeaviser</p>
+    </div>
+    <button class="refresh" id="refresh" aria-label="Oppdater">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>
+      <span class="lbl">Oppdater</span>
+    </button>
+  </header>
+
+  <div id="moduler" style="display:contents"></div>
+
+  <footer>
+    <span>Kronekikk v1.3.0</span>
+    <span>Valuta: <a href="https://www.norges-bank.no/tema/Statistikk/Valutakurser/">Norges Bank</a></span>
+  </footer>
+</main>
+
+<script>
+/* ============================================================
+   MODULER - det appen viser, i rekkefølge.
+   Vil du legge til noe nytt senere: legg en ny blokk { ... } her.
+   type: "valuta", "butikk" eller "json" (enkel liste fra en fil i data/)
+   ============================================================ */
+const MODULER = [
+  { type: "valuta",    tittel: "Valuta",    valutaer: ["EUR", "USD", "DKK", "SEK"] },
+  { type: "butikk",    tittel: "Butikk",
+    // Ny kjede: kopier en linje. avis = kjedens egen kundeavis-side,
+    // etilbud = kjedens side på eTilbudsavis (etilbudsavis.no/<Kjede>)
+    butikker: [
+      { navn: "REMA 1000", sted: "Ukens kundeavis",
+        avis: "https://www.rema.no/kundeavis",          etilbud: "https://etilbudsavis.no/REMA-1000" },
+      { navn: "Extra",     sted: "Ukens kundeavis",
+        avis: "https://www.coop.no/kundeavis",          etilbud: "https://etilbudsavis.no/Extra" },
+      { navn: "Europris",  sted: "Ukens kundeavis",
+        avis: "https://www.europris.no/kundeavis",      etilbud: "https://etilbudsavis.no/Europris" },
+      { navn: "Rusta",     sted: "Ukens kundeavis",
+        avis: "https://www.rusta.com/nb-no/kundeavis",  etilbud: "https://etilbudsavis.no/Rusta" },
+    ] },
+  // Eksempel på en ny ting senere (lag fila data/strompris.json):
+  // { type: "json", tittel: "Strømpris", fil: "data/strompris.json" },
+];
+
+/* ---------- hjelpere ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const kr = (n, d = 2) => n == null ? "–" : n.toLocaleString("nb-NO", {minimumFractionDigits:d, maximumFractionDigits:d});
+async function hentJson(url, ms = 12000){
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+  try{
+    const r = await fetch(url, {signal: ctl.signal, cache: "no-store"});
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+function siden(iso){
+  if(!iso) return "";
+  const min = Math.round((Date.now() - new Date(iso)) / 60000);
+  if(min < 2) return "nå nettopp";
+  if(min < 60) return `for ${min} min siden`;
+  const t = Math.round(min / 60);
+  if(t < 24) return `for ${t} t siden`;
+  const d = Math.round(t / 24);
+  return d === 1 ? "i går" : `for ${d} dager siden`;
+}
+const datoTekst = d => new Date(d + "T12:00").toLocaleDateString("nb-NO", {weekday:"long", day:"numeric", month:"long"});
+
+/* ---------- modultyper ---------- */
+const TYPER = {};
+
+/* Valuta: direkte fra Norges Bank, med data/valuta.json (fra innhenteren) som reserve */
+const NAVN = {EUR:"Euro", USD:"Amerikanske dollar", DKK:"Danske kroner", SEK:"Svenske kroner",
+              GBP:"Britiske pund", CHF:"Sveitsiske franc", JPY:"Japanske yen", PLN:"Polske zloty"};
+
+function lesNorgesBank(js){
+  const rot = js.data || js, st = rot.structure, ds = rot.dataSets[0];
+  const dims = st.dimensions.series, datoer = st.dimensions.observation[0].values.map(v => v.id);
+  const attr = (st.attributes && st.attributes.series) || [];
+  const iCur = dims.findIndex(d => d.id === "BASE_CUR"), iMult = attr.findIndex(a => a.id === "UNIT_MULT");
+  const ut = {};
+  for(const [nokkel, serie] of Object.entries(ds.series)){
+    const deler = nokkel.split(":").map(Number);
+    const kode = dims[iCur].values[deler[iCur]].id;
+    let mult = 0;
+    if(iMult >= 0 && serie.attributes && serie.attributes[iMult] != null)
+      mult = Number(attr[iMult].values[serie.attributes[iMult]].id);
+    const obs = Object.entries(serie.observations)
+      .filter(([, v]) => v && v[0] != null && v[0] !== "")
+      .map(([k, v]) => [Number(k), Number(v[0])]).sort((a, b) => a[0] - b[0]);
+    if(!obs.length) continue;
+    const s = obs[obs.length - 1];
+    ut[kode] = {kurs: s[1], enhet: 10 ** mult, dato: datoer[s[0]], forrige: obs.length > 1 ? obs[obs.length - 2][1] : null};
+  }
+  return ut;
+}
+
+TYPER.valuta = async (el, cfg) => {
+  el.innerHTML = `<h2>${esc(cfg.tittel)}</h2><p class="sub">Laster kurser…</p>`;
+  const url = `https://data.norges-bank.no/api/data/EXR/B.${cfg.valutaer.join("+")}.NOK.SP?format=sdmx-json&lastNObservations=2&locale=no`;
+  let kurser, kilde = "direkte";
+  try { kurser = lesNorgesBank(await hentJson(url)); }
+  catch(e){
+    try { kurser = (await hentJson("data/valuta.json")).kurser; kilde = "lagret"; }
+    catch(e2){ kurser = null; }
+  }
+  if(!kurser || !Object.keys(kurser).length){
+    el.innerHTML = `<h2>${esc(cfg.tittel)}</h2><p class="sub err">Fikk ikke hentet kurser fra Norges Bank. Prøv igjen litt senere.</p>`;
+    return;
+  }
+  const dato = Object.values(kurser).map(k => k.dato).sort().pop();
+  const rader = cfg.valutaer.filter(k => kurser[k]).map(k => {
+    const v = kurser[k], enhet = v.enhet || 1;
+    let chg = "";
+    if(v.forrige){
+      const p = (v.kurs - v.forrige) / v.forrige * 100;
+      const cls = p > 0.005 ? "up" : p < -0.005 ? "down" : "";
+      chg = `<span class="chg ${cls}">${p > 0 ? "▲" : p < 0 ? "▼" : "•"} ${kr(Math.abs(p))} %</span>`;
+    }
+    return `<li><span class="code">${k}</span>
+      <span>${esc(NAVN[k] || k)}<span class="small" style="display:block">per ${enhet} ${k}</span></span>
+      <span class="val"><span class="num">${kr(v.kurs, enhet >= 100 ? 2 : 4)} kr</span>${chg}</span></li>`;
+  }).join("");
+  el.innerHTML = `<h2>${esc(cfg.tittel)}</h2>
+    <p class="sub">Norges Banks midtkurs ${dato ? datoTekst(dato) : ""}. Endring fra forrige bankdag.</p>
+    <ul class="rows fx">${rader}</ul>
+    ${kilde === "lagret" ? `<p class="note">Viser sist lagrede kurser (Norges Bank svarte ikke direkte).</p>` : ""}`;
+};
+
+/* Butikk: ukens kundeavis per butikk. Avisene åpnes hos kjeden selv,
+   eller på eTilbudsavis som viser avisene som gjelder akkurat den butikken. */
+function ukeInfo(d = new Date()){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dag = t.getUTCDay() || 7;
+  const man = new Date(t); man.setUTCDate(t.getUTCDate() - dag + 1);
+  const son = new Date(man); son.setUTCDate(man.getUTCDate() + 6);
+  t.setUTCDate(t.getUTCDate() + 4 - dag);
+  const uke = Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7);
+  const f = x => x.toLocaleDateString("nb-NO", {day:"numeric", month:"short", timeZone:"UTC"});
+  return { uke, periode: `${f(man)} – ${f(son)}` };
+}
+
+TYPER.butikk = async (el, cfg) => {
+  const { uke, periode } = ukeInfo();
+  el.innerHTML = `<h2>${esc(cfg.tittel)}</h2>
+    <p class="sub">Ukens kundeaviser. <span class="week">Uke ${uke}</span> · ${periode}</p>
+    <div class="shops">${cfg.butikker.map(b => `
+      <div class="shop">
+        <h3>${esc(b.navn)}</h3>
+        <span class="small">${esc(b.sted || "")}</span>
+        <a class="btn" href="${esc(b.avis)}" target="_blank" rel="noopener">Ukens kundeavis ↗</a>
+        ${b.etilbud ? `<a class="alt" href="${esc(b.etilbud)}" target="_blank" rel="noopener">eller på eTilbudsavis</a>` : ""}
+      </div>`).join("")}</div>
+    <p class="note">Avisene åpnes hos kjeden og viser alltid den som gjelder nå. Gyldighet kan variere litt mellom kjedene.</p>`;
+};
+
+/* Generell liste fra en JSON-fil: { "oppdatert": "...", "rader": [ {"navn":"...", "verdi":"...", "info":"..."} ] } */
+TYPER.json = async (el, cfg) => {
+  try{
+    const js = await hentJson(cfg.fil);
+    el.innerHTML = `<h2>${esc(cfg.tittel)}</h2>
+      ${js.oppdatert ? `<p class="sub">Oppdatert ${siden(js.oppdatert)}</p>` : ""}
+      <ul class="rows" >${(js.rader || []).map(r => `<li style="grid-template-columns:1fr auto">
+        <span>${esc(r.navn)}${r.info ? `<span class="small" style="display:block">${esc(r.info)}</span>` : ""}</span>
+        <span class="num">${esc(r.verdi)}</span></li>`).join("")}</ul>`;
+  } catch(e){ el.innerHTML = `<h2>${esc(cfg.tittel)}</h2><p class="sub err">Fant ikke ${esc(cfg.fil)}.</p>`; }
+};
+
+/* ---------- oppstart ---------- */
+const holder = $("#moduler");
+const kort = MODULER.map(cfg => {
+  const s = document.createElement("section");
+  s.className = "card";
+  holder.appendChild(s);
+  return [s, cfg];
+});
+async function lastAlt(){
+  const knapp = $("#refresh");
+  knapp.classList.add("spin"); knapp.disabled = true;
+  await Promise.allSettled(kort.map(([el, cfg]) =>
+    (TYPER[cfg.type] || ((e) => e.innerHTML = `<p class="err">Ukjent type: ${esc(cfg.type)}</p>`))(el, cfg)));
+  knapp.classList.remove("spin"); knapp.disabled = false;
+}
+$("#refresh").onclick = lastAlt;
+lastAlt();
+</script>
+</body>
+</html>
