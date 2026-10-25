@@ -1,4 +1,4 @@
-# Kronekikk v1.3.0
+# Kronekikk v1.3.1
 
 Valutakurser (EUR, USD, DKK, SEK) og ukens kundeaviser fra REMA 1000, Extra, Europris og Rusta.
 
@@ -18,7 +18,7 @@ Hentes direkte fra Norges Banks åpne API (ingen nøkkel). DKK og SEK oppgis per
 
 ## Butikk
 Kjedens felles ukeavis for REMA 1000, Extra, Europris og Rusta.
-Hver har to lenker: kjedens egen kundeavis-side, og siden på eTilbudsavis.
+Hver har kjedens egen kundeavis-side og siden på eTilbudsavis. For Extra er eTilbudsavis hovedlenken, fordi Coop sin side krever valg av kjede og postnummer.
 Avisene ligger hos kjedene og vises ikke inne i appen (eTilbudsavis' API er bare for betalende kunder).
 
 Ny kjede: legg en linje i `butikker` under `type: "butikk"` i `MODULER`.
@@ -32,6 +32,7 @@ Legg en ny blokk i `MODULER` i `index.html`. Typen `json` viser en enkel liste f
 ```
 
 ## Versjoner
+- 1.3.1 – REMA 1000 lenker til rema.no/kampanjer; Extra åpner eTilbudsavis direkte
 - 1.3.0 – Nytt navn: Kronekikk (tidligere Kronesjekk)
 - 1.2.1 – Rusta viser kjedens felles kundeavis
 - 1.2.0 – REMA 1000 og Extra viser kjedens felles kundeavis

@@ -10,7 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Kronekikk v1.3.0
+/* Kronekikk v1.3.1
+   1.3.1  REMA 1000: lenke til rema.no/kampanjer. Extra: eTilbudsavis som hovedlenke,
+          Coop (krever kjede + postnummer) som reserve
    1.3.0  Nytt navn: Kronekikk (tidligere Kronesjekk)
    1.2.1  Rusta: kjedens felles kundeavis (alle fire er nå kjedeaviser)
    1.2.0  REMA 1000 og Extra: kjedens felles kundeavis, ikke en bestemt butikk
@@ -114,7 +116,7 @@ footer a{color:inherit}
   <div id="moduler" style="display:contents"></div>
 
   <footer>
-    <span>Kronekikk v1.3.0</span>
+    <span>Kronekikk v1.3.1</span>
     <span>Valuta: <a href="https://www.norges-bank.no/tema/Statistikk/Valutakurser/">Norges Bank</a></span>
   </footer>
 </main>
@@ -130,11 +132,14 @@ const MODULER = [
   { type: "butikk",    tittel: "Butikk",
     // Ny kjede: kopier en linje. avis = kjedens egen kundeavis-side,
     // etilbud = kjedens side på eTilbudsavis (etilbudsavis.no/<Kjede>)
+    // alt + altTekst = valgfri annen reservelenke med egen tekst
     butikker: [
       { navn: "REMA 1000", sted: "Ukens kundeavis",
-        avis: "https://www.rema.no/kundeavis",          etilbud: "https://etilbudsavis.no/REMA-1000" },
+        avis: "https://www.rema.no/kampanjer/",         etilbud: "https://etilbudsavis.no/REMA-1000" },
+      // Extra: Coop sin side krever kjede + postnummer, så eTilbudsavis er hovedlenken
       { navn: "Extra",     sted: "Ukens kundeavis",
-        avis: "https://www.coop.no/kundeavis",          etilbud: "https://etilbudsavis.no/Extra" },
+        avis: "https://etilbudsavis.no/Extra",
+        alt: "https://www.coop.no/kundeavis", altTekst: "eller hos Coop (velg Extra + postnummer)" },
       { navn: "Europris",  sted: "Ukens kundeavis",
         avis: "https://www.europris.no/kundeavis",      etilbud: "https://etilbudsavis.no/Europris" },
       { navn: "Rusta",     sted: "Ukens kundeavis",
@@ -252,8 +257,9 @@ TYPER.butikk = async (el, cfg) => {
         <span class="small">${esc(b.sted || "")}</span>
         <a class="btn" href="${esc(b.avis)}" target="_blank" rel="noopener">Ukens kundeavis ↗</a>
         ${b.etilbud ? `<a class="alt" href="${esc(b.etilbud)}" target="_blank" rel="noopener">eller på eTilbudsavis</a>` : ""}
+        ${b.alt ? `<a class="alt" href="${esc(b.alt)}" target="_blank" rel="noopener">${esc(b.altTekst || "annen lenke")}</a>` : ""}
       </div>`).join("")}</div>
-    <p class="note">Avisene åpnes hos kjeden og viser alltid den som gjelder nå. Gyldighet kan variere litt mellom kjedene.</p>`;
+    <p class="note">Avisene åpnes hos kjeden eller på eTilbudsavis og viser alltid den som gjelder nå. Gyldighet kan variere litt mellom kjedene.</p>`;
 };
 
 /* Generell liste fra en JSON-fil: { "oppdatert": "...", "rader": [ {"navn":"...", "verdi":"...", "info":"..."} ] } */
