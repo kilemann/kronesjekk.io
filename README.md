@@ -1,17 +1,22 @@
-# Kronekikk v1.3.1
+# Kronekikk v1.4.0
 
 Valutakurser (EUR, USD, DKK, SEK) og ukens kundeaviser fra REMA 1000, Extra, Europris og Rusta.
 
-Nettside: https://kilemannen.github.io/kronesjekk.io/
+Nettside: https://kilemann.github.io/kronesjekk.io/
 
 ## Filer
 
 | Fil | Hva |
 |---|---|
-| `index.html` | Selve appen. Lista `MODULER` øverst i skriptet styrer hva som vises. |
+| `index.html` | Selve appen. Lista `MODULER` øverst i skriptet styrer hvilke faner som vises. |
 | `data/valuta.json` | Reservekopi av kursene (brukes hvis Norges Bank ikke svarer direkte). |
 | `scripts/innhent.py` | Henter valutakurser og skriver til `data/`. |
 | `.github/workflows/innhent.yml` | Kjører innhenteren på hverdager etter kl. 16. |
+
+## Faner
+Hver blokk i `MODULER` blir en egen fane. Fanelinja ligger nederst på mobil og øverst på PC.
+Hver fane har sin egen adresse, f.eks. `…/kronesjekk.io/#butikk`, så du kan lage snarvei rett til den.
+Appen husker sist brukte fane, og laster data først når fanen åpnes.
 
 ## Valuta
 Hentes direkte fra Norges Banks åpne API (ingen nøkkel). DKK og SEK oppgis per 100, slik Norges Bank gjør.
@@ -24,7 +29,7 @@ Avisene ligger hos kjedene og vises ikke inne i appen (eTilbudsavis' API er bare
 Ny kjede: legg en linje i `butikker` under `type: "butikk"` i `MODULER`.
 
 ## Legge til nye ting
-Legg en ny blokk i `MODULER` i `index.html`. Typen `json` viser en enkel liste fra en fil i `data/`:
+Legg en ny blokk i `MODULER` i `index.html`, med `id` (brukes i adressen) og `ikon` (`valuta`, `butikk`, `liste`, `strom` eller `stjerne`). Den blir en ny fane. Typen `json` viser en enkel liste fra en fil i `data/`:
 
 ```json
 { "oppdatert": "2026-10-25T14:00:00+01:00",
@@ -32,6 +37,7 @@ Legg en ny blokk i `MODULER` i `index.html`. Typen `json` viser en enkel liste f
 ```
 
 ## Versjoner
+- 1.4.0 – Faner: én fane per modul, egen adresse per fane, husker sist brukte fane
 - 1.3.1 – REMA 1000 lenker til rema.no/kampanjer; Extra åpner eTilbudsavis direkte
 - 1.3.0 – Nytt navn: Kronekikk (tidligere Kronesjekk)
 - 1.2.1 – Rusta viser kjedens felles kundeavis

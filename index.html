@@ -5,12 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kronekikk</title>
 <meta name="theme-color" content="#11161c">
-<meta name="description" content="Valutakurser og ukens kundeaviser fra butikkene i Kristiansand.">
+<meta name="description" content="Valutakurser og ukens kundeaviser fra REMA 1000, Extra, Europris og Rusta.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23f0c040'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='17' text-anchor='middle' fill='%231f4fa3'%3Ekr%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Kronekikk v1.3.1
+/* Kronekikk v1.4.0
+   1.4.0  Faner: hver modul har sin egen fane (fanelinje nederst på mobil, øverst på PC),
+          egen adresse per fane (#valuta, #butikk), husker sist brukte fane,
+          laster data først når fanen åpnes, Oppdater gjelder bare åpen fane
    1.3.1  REMA 1000: lenke til rema.no/kampanjer. Extra: eTilbudsavis som hovedlenke,
           Coop (krever kjede + postnummer) som reserve
    1.3.0  Nytt navn: Kronekikk (tidligere Kronesjekk)
@@ -38,9 +41,9 @@
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);
-  padding-block:28px 48px;
+  padding-block:28px calc(96px + env(safe-area-inset-bottom,0px));
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-main{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:30px}
+main{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
 
 header{display:flex;align-items:center;gap:16px}
 .badge{flex:none;width:60px;height:60px;border-radius:50%;background:var(--badge);display:grid;place-items:center}
@@ -88,6 +91,24 @@ button:focus-visible{outline:3px solid var(--shadow);outline-offset:2px}
 .shop a.alt{font-size:.82rem;color:var(--muted);text-align:center}
 .shop a:focus-visible{outline:3px solid var(--shadow);outline-offset:2px}
 .week{font:500 .8rem var(--mono);color:var(--hot)}
+/* fanelinje: fast nederst på mobil, rad under tittelen på bred skjerm */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;background:var(--card);
+  border-top:2px solid var(--edge);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;
+  padding:9px 6px 8px;font:600 .78rem var(--body);color:var(--muted);min-width:0}
+.tabs button:hover{box-shadow:none;color:var(--ink)}
+.tabs button svg{width:24px;height:24px}
+.tabs button[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 3px 0 var(--hot)}
+.tabs button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (min-width:720px){
+  body{padding-bottom:48px}
+  .tabs{position:static;border:2px solid var(--edge);padding:0;box-shadow:6px 6px 0 var(--shadow)}
+  .tabs button{flex-direction:row;justify-content:center;gap:8px;font-size:.95rem;padding:11px}
+  .tabs button+button{border-left:2px solid var(--edge)}
+  .tabs button svg{width:20px;height:20px}
+  .tabs button[aria-selected="true"]{background:var(--ink);color:var(--card);box-shadow:none}
+}
+.card[hidden]{display:none}
 footer{color:var(--muted);font:500 .78rem var(--mono);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
 footer a{color:inherit}
 @media (prefers-reduced-motion:reduce){.refresh.spin svg{animation:none}}
@@ -113,10 +134,12 @@ footer a{color:inherit}
     </button>
   </header>
 
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Faner"></nav>
+
   <div id="moduler" style="display:contents"></div>
 
   <footer>
-    <span>Kronekikk v1.3.1</span>
+    <span>Kronekikk v1.4.0</span>
     <span>Valuta: <a href="https://www.norges-bank.no/tema/Statistikk/Valutakurser/">Norges Bank</a></span>
   </footer>
 </main>
@@ -124,12 +147,14 @@ footer a{color:inherit}
 <script>
 /* ============================================================
    MODULER - det appen viser, i rekkefølge.
-   Vil du legge til noe nytt senere: legg en ny blokk { ... } her.
+   Hver blokk blir en egen fane. Legg til en ny blokk { ... } her for en ny fane.
+   id:   kort navn uten mellomrom, brukes i adressen (#id)
+   ikon: "valuta", "butikk", "liste", "strom" eller "stjerne"
    type: "valuta", "butikk" eller "json" (enkel liste fra en fil i data/)
    ============================================================ */
 const MODULER = [
-  { type: "valuta",    tittel: "Valuta",    valutaer: ["EUR", "USD", "DKK", "SEK"] },
-  { type: "butikk",    tittel: "Butikk",
+  { id: "valuta", ikon: "valuta", type: "valuta", tittel: "Valuta", valutaer: ["EUR", "USD", "DKK", "SEK"] },
+  { id: "butikk", ikon: "butikk", type: "butikk", tittel: "Butikk",
     // Ny kjede: kopier en linje. avis = kjedens egen kundeavis-side,
     // etilbud = kjedens side på eTilbudsavis (etilbudsavis.no/<Kjede>)
     // alt + altTekst = valgfri annen reservelenke med egen tekst
@@ -146,7 +171,7 @@ const MODULER = [
         avis: "https://www.rusta.com/nb-no/kundeavis",  etilbud: "https://etilbudsavis.no/Rusta" },
     ] },
   // Eksempel på en ny ting senere (lag fila data/strompris.json):
-  // { type: "json", tittel: "Strømpris", fil: "data/strompris.json" },
+  // { id: "strom", ikon: "strom", type: "json", tittel: "Strømpris", fil: "data/strompris.json" },
 ];
 
 /* ---------- hjelpere ---------- */
@@ -274,23 +299,73 @@ TYPER.json = async (el, cfg) => {
   } catch(e){ el.innerHTML = `<h2>${esc(cfg.tittel)}</h2><p class="sub err">Fant ikke ${esc(cfg.fil)}.</p>`; }
 };
 
-/* ---------- oppstart ---------- */
-const holder = $("#moduler");
-const kort = MODULER.map(cfg => {
-  const s = document.createElement("section");
-  s.className = "card";
-  holder.appendChild(s);
-  return [s, cfg];
+/* ---------- faneikoner ---------- */
+const IKONER = {
+  valuta: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/></svg>`,
+  butikk: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+    <path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10" stroke-linecap="round"/></svg>`,
+  liste: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>`,
+  strom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+    <path d="M13 2 5 13.5h6L10 22l8-11.5h-6z"/></svg>`,
+  stjerne: `<svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4L22 12l-7.6 2.6L12 22l-2.4-7.4L2 12l7.6-2.6z" fill="currentColor"/></svg>`
+};
+
+/* ---------- faner og oppstart ---------- */
+const LAGRE = "kronekikk-fane";
+const lesLagret = () => { try { return localStorage.getItem(LAGRE); } catch(e){ return null; } };
+const skrivLagret = v => { try { localStorage.setItem(LAGRE, v); } catch(e){} };
+
+const holder = $("#moduler"), fanelinje = $("#tabs");
+const faner = MODULER.map((cfg, i) => {
+  const id = cfg.id || "fane" + (i + 1);
+  const el = document.createElement("section");
+  el.className = "card"; el.id = "panel-" + id; el.hidden = true;
+  el.setAttribute("role", "tabpanel"); el.setAttribute("aria-labelledby", "fane-" + id);
+  holder.appendChild(el);
+  const knapp = document.createElement("button");
+  knapp.id = "fane-" + id; knapp.setAttribute("role", "tab"); knapp.setAttribute("aria-controls", el.id);
+  knapp.innerHTML = `${IKONER[cfg.ikon] || IKONER.stjerne}<span>${esc(cfg.tittel)}</span>`;
+  knapp.onclick = () => { if(location.hash !== "#" + id) location.hash = id; else vis(id); };
+  fanelinje.appendChild(knapp);
+  return { id, cfg, el, knapp, lastet: false };
 });
-async function lastAlt(){
+if(faner.length < 2) fanelinje.hidden = true;
+
+let aktiv = null;
+async function last(f){
   const knapp = $("#refresh");
   knapp.classList.add("spin"); knapp.disabled = true;
-  await Promise.allSettled(kort.map(([el, cfg]) =>
-    (TYPER[cfg.type] || ((e) => e.innerHTML = `<p class="err">Ukjent type: ${esc(cfg.type)}</p>`))(el, cfg)));
-  knapp.classList.remove("spin"); knapp.disabled = false;
+  try { await (TYPER[f.cfg.type] || (e => e.innerHTML = `<p class="err">Ukjent type: ${esc(f.cfg.type)}</p>`))(f.el, f.cfg); }
+  catch(e){ f.el.innerHTML = `<h2>${esc(f.cfg.tittel)}</h2><p class="sub err">Noe gikk galt: ${esc(e.message)}</p>`; }
+  f.lastet = true;
+  if(f === aktiv){ knapp.classList.remove("spin"); knapp.disabled = false; }
 }
-$("#refresh").onclick = lastAlt;
-lastAlt();
+function vis(id){
+  const f = faner.find(x => x.id === id) || faner[0];
+  aktiv = f;
+  for(const x of faner){
+    x.el.hidden = x !== f;
+    x.knapp.setAttribute("aria-selected", x === f);
+    x.knapp.tabIndex = x === f ? 0 : -1;
+  }
+  document.title = faner.length > 1 ? `${f.cfg.tittel} – Kronekikk` : "Kronekikk";
+  skrivLagret(f.id);
+  const knapp = $("#refresh");
+  if(!f.lastet) last(f); else { knapp.classList.remove("spin"); knapp.disabled = false; }
+}
+/* piltaster mellom faner */
+fanelinje.addEventListener("keydown", e => {
+  const i = faner.indexOf(aktiv), n = faner.length;
+  const ny = e.key === "ArrowRight" ? (i + 1) % n : e.key === "ArrowLeft" ? (i - 1 + n) % n : null;
+  if(ny == null) return;
+  e.preventDefault(); faner[ny].knapp.focus(); location.hash = faner[ny].id;
+});
+window.addEventListener("hashchange", () => vis(location.hash.slice(1)));
+$("#refresh").onclick = () => aktiv && last(aktiv);
+
+vis(location.hash.slice(1) || lesLagret() || faner[0].id);
 </script>
 </body>
 </html>
