@@ -1,4 +1,4 @@
-# Kronekikk v1.4.0
+# Kronekikk v1.5.0
 
 Valutakurser (EUR, USD, DKK, SEK) og ukens kundeaviser fra REMA 1000, Extra, Europris og Rusta.
 
@@ -36,7 +36,26 @@ Legg en ny blokk i `MODULER` i `index.html`, med `id` (brukes i adressen) og `ik
   "rader": [ { "navn": "Strøm NO2", "verdi": "0,84 kr/kWh", "info": "snitt i dag" } ] }
 ```
 
+## Tester
+Appen er utviklet med test først (TDD) fra og med 1.5.0. JavaScript-testene kjører appens eget skript i en simulert nettleser med simulert nett og klokke. Python-testene dekker innhenteren. Begge bruker samme testdata fra Norges Bank (`test/fixtures/`), så appen og innhenteren tolker svaret likt.
+
+```
+npm test
+```
+
+Krever Node 22 eller nyere og Python 3. Ingen avhengigheter.
+
+| Fil | Hva den tester |
+|---|---|
+| `test/parsing.test.js` | Norges Bank-tolking, tallformat, «for N min siden», ukenummer, modullista |
+| `test/app.test.js` | Valuta med reserve og feilmeldinger, butikk, generell liste, faner, adresse, oppdater-knapp |
+| `test/test_innhent.py` | Innhenteren: tolking, skriving av `data/valuta.json`, og at arbeidsflyten henger sammen |
+| `test/release.test.js` | Versjonsnummer og endringslogg er like overalt |
+
+Ved ny versjon: skriv testen først, endre så appen, og oppdater versjon i `package.json`, kommentaren øverst i `index.html`, bunnteksten og lista under.
+
 ## Versjoner
+- 1.5.0 – Ingen endringer i hvordan appen virker. Automatiske tester lagt til.
 - 1.4.0 – Faner: én fane per modul, egen adresse per fane, husker sist brukte fane
 - 1.3.1 – REMA 1000 lenker til rema.no/kampanjer; Extra åpner eTilbudsavis direkte
 - 1.3.0 – Nytt navn: Kronekikk (tidligere Kronesjekk)

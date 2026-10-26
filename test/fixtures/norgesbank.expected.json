@@ -1,0 +1,6 @@
+{
+  "EUR": { "kurs": 11.7, "enhet": 1, "dato": "2026-10-26", "forrige": 11.6 },
+  "USD": { "kurs": 10.1, "enhet": 1, "dato": "2026-10-26", "forrige": 10.2 },
+  "DKK": { "kurs": 157.23, "enhet": 100, "dato": "2026-10-26", "forrige": 157.23 },
+  "SEK": { "kurs": 104.5, "enhet": 100, "dato": "2026-10-23", "forrige": null }
+}
