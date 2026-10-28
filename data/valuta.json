@@ -1,30 +1,30 @@
 {
-  "oppdatert": "2026-10-27T17:58:24+00:00",
+  "oppdatert": "2026-10-28T16:07:22+00:00",
   "kilde": "Norges Bank",
   "kurser": {
     "DKK": {
-      "kurs": 138.99,
+      "kurs": 138.44,
       "enhet": 100,
-      "dato": "2026-10-27",
-      "forrige": 139.87
+      "dato": "2026-10-28",
+      "forrige": 138.99
     },
     "USD": {
-      "kurs": 9.317,
+      "kurs": 9.2944,
       "enhet": 1,
-      "dato": "2026-10-27",
-      "forrige": 9.3444
+      "dato": "2026-10-28",
+      "forrige": 9.317
     },
     "EUR": {
-      "kurs": 10.3885,
+      "kurs": 10.3475,
       "enhet": 1,
-      "dato": "2026-10-27",
-      "forrige": 10.4545
+      "dato": "2026-10-28",
+      "forrige": 10.3885
     },
     "SEK": {
-      "kurs": 93.76,
+      "kurs": 93.59,
       "enhet": 100,
-      "dato": "2026-10-27",
-      "forrige": 93.86
+      "dato": "2026-10-28",
+      "forrige": 93.76
     }
   }
 }
