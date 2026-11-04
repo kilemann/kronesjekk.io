@@ -1,4 +1,4 @@
-# Kronekikk v1.5.0
+# Kronekikk v1.6.0
 
 Valutakurser (EUR, USD, DKK, SEK) og ukens kundeaviser fra REMA 1000, Extra, Europris og Rusta.
 
@@ -55,6 +55,7 @@ Krever Node 22 eller nyere og Python 3. Ingen avhengigheter.
 Ved ny versjon: skriv testen først, endre så appen, og oppdater versjon i `package.json`, kommentaren øverst i `index.html`, bunnteksten og lista under.
 
 ## Versjoner
+- 1.6.0 – Navn, versjon og info-knapp (i) øverst til venstre, med bruksanvisning og versjonsliste.
 - 1.5.0 – Ingen endringer i hvordan appen virker. Automatiske tester lagt til.
 - 1.4.0 – Faner: én fane per modul, egen adresse per fane, husker sist brukte fane
 - 1.3.1 – REMA 1000 lenker til rema.no/kampanjer; Extra åpner eTilbudsavis direkte
