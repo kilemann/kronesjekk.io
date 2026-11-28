@@ -145,6 +145,7 @@ class Fond(unittest.TestCase):
         kall, data, status, feil = self.kjør([les("morningstar.json")])
         self.assertIsNone(feil)
         self.assertEqual(len(kall), 1, "første variant virket")
+        self.assertTrue(kall[0].startswith("https://lt.morningstar.com/api/rest.svc/timeseries_price/"), kall[0])
         self.assertIn("id=F00000JORS]2]0]FONOR$$ALL", kall[0])
         self.assertIn("currencyId=NOK", kall[0])
         self.assertIn("frequency=daily", kall[0])

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Kronekikk innhenter v1.3.0
+"""Kronekikk innhenter v1.3.1
 
 Kjøres av GitHub Actions (se .github/workflows/innhent.yml) og skriver
 ferske tall til data/-mappa, som appen leser.
@@ -11,6 +11,7 @@ ferske tall til data/-mappa, som appen leser.
 Nye jobber legges i JOBBER nederst; hver skriver sin egen fil i data/.
 
 Versjoner
+  1.3.1  Morningstar: ny vertsadresse lt.morningstar.com (tools.morningstar.* finnes ikke lenger)
   1.3.0  Fondskurser fra Morningstar (dagskurs, hele historikken) for fondene i fond.json
   1.2.0  Nytt navn: Kronekikk
   1.1.0  Drivstoff fjernet
@@ -83,11 +84,13 @@ def valuta():
 # Morningstar sine egne fondsider bruker, og kan endre seg uten varsel. Derfor
 # prøves flere varianter i rekkefølge, og den som virket skrives i data/fond-status.json.
 # Mønster: https://help.portfolio-performance.info/en/how-to/downloading-historical-prices/morningstar/
+# Vertsadressen ble lt.morningstar.com i juli 2026:
+# https://forum.portfolio-performance.info/t/morningstar-json-is-not-working/33630
 MS_VARIANTER = [
-    "https://tools.morningstar.no/api/rest.svc/timeseries_price/t92wz0sj7c?id={id}]2]0]FONOR$$ALL",
-    "https://tools.morningstar.co.uk/api/rest.svc/timeseries_price/t92wz0sj7c?id={id}]2]0]FONOR$$ALL",
-    "https://tools.morningstar.no/api/rest.svc/timeseries_price/t92wz0sj7c?id={id}",
-    "https://tools.morningstar.co.uk/api/rest.svc/timeseries_price/t92wz0sj7c?id={id}",
+    "https://lt.morningstar.com/api/rest.svc/timeseries_price/t92wz0sj7c?id={id}]2]0]FONOR$$ALL",
+    "https://lt.morningstar.com/api/rest.svc/timeseries_price/t92wz0sj7c?id={id}]2]0]FOEUR$$ALL",
+    "https://lt.morningstar.com/api/rest.svc/timeseries_price/t92wz0sj7c?id={id}]2]0]FOGBR$$ALL",
+    "https://lt.morningstar.com/api/rest.svc/timeseries_price/t92wz0sj7c?id={id}",
 ]
 MS_PARAMS = "&currencyId=NOK&idtype=Morningstar&frequency=daily&startDate=1990-01-01&outputType=JSON"
 NETTLESER = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
