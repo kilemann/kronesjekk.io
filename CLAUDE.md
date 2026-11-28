@@ -1,5 +1,5 @@
 # Kronekikk (repo kronesjekk.io)
-Valutakurser fra Norges Bank (EUR, USD, DKK, SEK) og ukens kundeaviser (REMA 1000, Extra, Europris, Rusta). Én HTML-fil (`index.html`).
+Valutakurser fra Norges Bank (EUR, USD, DKK, SEK), fondskurser fra Morningstar (fond i `fond.json`) og ukens kundeaviser (REMA 1000, Extra, Europris, Rusta, Sport Outlet). Én HTML-fil (`index.html`). Faner: Valuta, Fond, Butikk.
 Nettside: https://kilemann.github.io/kronesjekk.io/
 
 ## Regler for alt arbeid i dette repoet
@@ -21,4 +21,5 @@ Nettside: https://kilemann.github.io/kronesjekk.io/
 `npm test` kjører både JavaScript-testene (Node 22) og Python-testene (`test/test_innhent.py`). Begge bruker samme testdata fra Norges Bank i `test/fixtures/`.
 
 ## Viktig
-- En robot (`.github/workflows/innhent.yml`) skriver `data/valuta.json` til `main` hver hverdag. Hent alltid siste `main` før push, og ikke endre `data/` for hånd.
+- En robot (`.github/workflows/innhent.yml`) skriver `data/valuta.json`, `data/fond/*.json` og `data/fond-status.json` til `main`. Den kjører også ved push som endrer `fond.json` eller innhenteren.
+- Morningstar er ikke et offisielt API. Sjekk `data/fond-status.json` hvis fondskursene stopper opp. Hent alltid siste `main` før push, og ikke endre `data/` for hånd.

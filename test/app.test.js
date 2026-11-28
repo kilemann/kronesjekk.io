@@ -99,15 +99,19 @@ test('Generell liste (json-type): viser rader, og gjør innholdet ufarlig', asyn
 });
 
 /* ---------- Faner ---------- */
+const fane = (r, id) => r.api.faner.find(f => f.id === id);
+
 test('Faner: én knapp og ett panel per modul, første fane er åpen som standard', async () => {
   const r = boot(); await flush();
-  assert.equal(r.api.faner.length, 2);
+  assert.deepEqual(plain(r.api.faner.map(f => f.id)), ['valuta', 'fond', 'butikk'], 'Fond ligger mellom Valuta og Butikk');
   assert.equal(r.api.faner[0].knapp.getAttribute('aria-selected'), 'true');
-  assert.equal(r.api.faner[1].knapp.getAttribute('aria-selected'), 'false');
+  for (const f of r.api.faner.slice(1)) {
+    assert.equal(f.knapp.getAttribute('aria-selected'), 'false');
+    assert.equal(f.el.hidden, true);
+    assert.equal(f.knapp.tabIndex, -1);
+  }
   assert.equal(r.api.faner[0].el.hidden, false);
-  assert.equal(r.api.faner[1].el.hidden, true);
   assert.equal(r.api.faner[0].knapp.tabIndex, 0);
-  assert.equal(r.api.faner[1].knapp.tabIndex, -1);
   assert.equal(r.env.document.title, 'Valuta – Kronekikk');
   assert.equal(r.env.storage.get('kronekikk-fane'), 'valuta');
   assert.equal(r.api.faner[0].knapp.getAttribute('role'), 'tab');
@@ -118,10 +122,12 @@ test('Faner: én knapp og ett panel per modul, første fane er åpen som standar
 
 test('Faner: data lastes først når fanen åpnes, og bare én gang', async () => {
   const r = boot(); await flush(); await flush();
-  assert.equal(r.api.faner[1].lastet, false, 'Butikk er ikke lastet ennå');
+  assert.equal(fane(r, 'butikk').lastet, false, 'Butikk er ikke lastet ennå');
+  assert.equal(fane(r, 'fond').lastet, false, 'Fond er ikke lastet ennå');
+  assert.ok(!r.log.some(u => /fond/.test(u)), 'ingen fondshenting før fanen åpnes');
   assert.equal(r.env.el('panel-butikk').innerHTML, '');
   hashTo(r, 'butikk'); await flush();
-  assert.equal(r.api.faner[1].lastet, true);
+  assert.equal(fane(r, 'butikk').lastet, true);
   assert.match(r.env.el('panel-butikk').innerHTML, /Ukens kundeaviser/);
   const nett = r.log.length;
   hashTo(r, 'valuta'); hashTo(r, 'butikk'); await flush();
@@ -131,9 +137,9 @@ test('Faner: data lastes først når fanen åpnes, og bare én gang', async () =
 test('Faner: bytte fane oppdaterer valgt, skjuling, tittel og husker valget', async () => {
   const r = boot(); await flush();
   hashTo(r, 'butikk'); await flush();
-  assert.equal(r.api.faner[1].knapp.getAttribute('aria-selected'), 'true');
+  assert.equal(fane(r, 'butikk').knapp.getAttribute('aria-selected'), 'true');
   assert.equal(r.api.faner[0].el.hidden, true);
-  assert.equal(r.api.faner[1].el.hidden, false);
+  assert.equal(fane(r, 'butikk').el.hidden, false);
   assert.equal(r.env.document.title, 'Butikk – Kronekikk');
   assert.equal(r.env.storage.get('kronekikk-fane'), 'butikk');
 });
@@ -151,7 +157,7 @@ test('Faner: adresse (#butikk) vinner over lagret fane, og ukjent adresse gir f�
 
 test('Faner: klikk på fanen setter adressen, og klikk på åpen fane laster ingenting på nytt', async () => {
   const r = boot(); await flush(); await flush();
-  r.api.faner[1].knapp.click();
+  fane(r, 'butikk').knapp.click();
   assert.equal(r.location.hash, '#butikk');
   const nett = r.log.length;
   r.api.faner[0].knapp.click();
@@ -164,6 +170,7 @@ test('Faner: klikk på fanen setter adressen, og klikk på åpen fane laster ing
 test('Faner: piltaster går til neste og forrige fane, med rundgang', async () => {
   const r = boot(); await flush();
   const key = k => r.env.el('tabs').dispatch('keydown', { key: k });
+  key('ArrowRight'); assert.equal(r.location.hash, '#fond'); r.env.winEvents.dispatch('hashchange');
   key('ArrowRight'); assert.equal(r.location.hash, '#butikk'); r.env.winEvents.dispatch('hashchange');
   key('ArrowRight'); assert.equal(r.location.hash, '#valuta', 'fra siste til første');
   r.env.winEvents.dispatch('hashchange');

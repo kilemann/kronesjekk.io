@@ -1,8 +1,8 @@
 {
   "name": "kronekikk",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "private": true,
-  "description": "Kronekikk – valutakurser og ukens kundeaviser",
+  "description": "Kronekikk – valutakurser, fondskurser og ukens kundeaviser",
   "scripts": {
     "test": "node --test \"test/*.test.js\" && python3 -m unittest discover -s test -p \"test_*.py\" -v"
   }

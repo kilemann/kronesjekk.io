@@ -6,6 +6,7 @@ const { loadApp } = require('./harness');
 const HTML = path.join(__dirname, '..', 'index.html');
 const NAMES = [
   'MODULER', 'TYPER', 'IKONER', 'NAVN', 'esc', 'kr', 'siden', 'datoTekst', 'hentJson', 'lesNorgesBank', 'ukeInfo',
+  'PERIODER', 'lesFond', 'trekkMnd', 'periodeStart', 'avkastning', 'pstTekst', 'tynn', 'kurveSvg', 'fondHtml', 'FOND_PERIODE',
   'faner', 'vis', 'last', 'aktiv', 'lesLagret', 'skrivLagret', 'LAGRE',
 ];
 const FIXTURE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'norgesbank.json'), 'utf8'));

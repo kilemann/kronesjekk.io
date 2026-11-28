@@ -1,12 +1,25 @@
-# Kronekikk innhenting v1.2.0
-# Henter valutakurser og lagrer dem i data/ (reserve hvis Norges Bank ikke
-# svarer direkte i nettleseren). Kjører hverdager etter at kursene er satt,
-# og kan startes for hånd under Actions-fanen.
+# Kronekikk innhenting v1.3.0
+# Henter valutakurser og fondskurser og lagrer dem i data/.
+# Kjører hverdager etter at Norges Bank har satt kursene, og hver morgen tirsdag–lørdag
+# for å få med fondskursene for dagen før. Kjører også med en gang fondslista
+# eller innhenteren endres, og kan startes for hånd under Actions-fanen.
+#
+# Versjoner
+#   1.3.0  Fondskurser; kjører også om morgenen og når fond.json/innhenteren endres;
+#          henter siste main før push, så den ikke kolliderer med andre endringer
+#   1.2.0  Nytt navn: Kronekikk
 name: Innhent data
 
 on:
   schedule:
     - cron: "23 15,17 * * 1-5"   # UTC, etter Norges Banks kurser ca. kl. 16
+    - cron: "43 5 * * 2-6"       # UTC, fondskurser for dagen før
+  push:
+    branches: [main]
+    paths:
+      - fond.json
+      - scripts/innhent.py
+      - .github/workflows/innhent.yml
   workflow_dispatch:
 
 permissions:
@@ -31,5 +44,7 @@ jobs:
           git config user.name  "kronekikk-bot"
           git config user.email "actions@users.noreply.github.com"
           git add data/
-          git diff --cached --quiet || git commit -m "Oppdater data $(date -u +%F' '%H:%M)"
+          git diff --cached --quiet && exit 0
+          git commit -m "Oppdater data $(date -u +%F' '%H:%M)"
+          git pull --rebase origin main
           git push

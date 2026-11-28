@@ -1,6 +1,6 @@
-# Kronekikk v1.7.0
+# Kronekikk v1.8.0
 
-Valutakurser (EUR, USD, DKK, SEK) og ukens kundeaviser fra REMA 1000, Extra, Europris, Rusta og Sport Outlet.
+Valutakurser (EUR, USD, DKK, SEK), fondskurser og ukens kundeaviser fra REMA 1000, Extra, Europris, Rusta og Sport Outlet.
 
 Nettside: https://kilemann.github.io/kronesjekk.io/
 
@@ -9,9 +9,12 @@ Nettside: https://kilemann.github.io/kronesjekk.io/
 | Fil | Hva |
 |---|---|
 | `index.html` | Selve appen. Lista `MODULER` øverst i skriptet styrer hvilke faner som vises. |
+| `fond.json` | Fondslista: navn, ISIN og Morningstar-ID per fond. |
 | `data/valuta.json` | Reservekopi av kursene (brukes hvis Norges Bank ikke svarer direkte). |
-| `scripts/innhent.py` | Henter valutakurser og skriver til `data/`. |
-| `.github/workflows/innhent.yml` | Kjører innhenteren på hverdager etter kl. 16. |
+| `data/fond/<id>.json` | Kurshistorikk per fond, skrevet av roboten. |
+| `data/fond-status.json` | Hvordan siste fondshenting gikk (hvilken adresse som virket, eller feilen). |
+| `scripts/innhent.py` | Henter valutakurser og fondskurser og skriver til `data/`. |
+| `.github/workflows/innhent.yml` | Kjører innhenteren på hverdager etter kl. 16, hver morgen tirsdag–lørdag, og med en gang `fond.json` eller innhenteren endres. |
 
 ## Faner
 Hver blokk i `MODULER` blir en egen fane. Fanelinja ligger nederst på mobil og øverst på PC.
@@ -20,6 +23,14 @@ Appen husker sist brukte fane, og laster data først når fanen åpnes.
 
 ## Valuta
 Hentes direkte fra Norges Banks åpne API (ingen nøkkel). DKK og SEK oppgis per 100, slik Norges Bank gjør.
+
+## Fond
+Fanen viser siste kurs, endring fra forrige kurs, avkastning for 1 mnd, 6 mnd, 1 år, 3 år, 5 år og maks, og en kurve for valgt periode. Valgt periode huskes på enheten.
+
+Kursene hentes av roboten fra Morningstar (dagskurs i NOK, hele historikken) og lagres i `data/fond/`. Appen leser bare disse filene, så den virker selv om Morningstar ikke svarer en dag.
+Morningstar har **ikke et offisielt gratis API**. Roboten bruker samme adresser som Morningstar sine egne fondsider, og prøver flere varianter. Den som virket, eller feilmeldingen, står i `data/fond-status.json`. Et svar som er mye kortere enn lagret historikk, sletter ikke historikken. Er siste kurs eldre enn 7 dager, sier appen fra.
+
+**Nytt fond:** legg en linje i `fond.json` med `id` (små bokstaver og bindestrek), `navn`, `isin` og `morningstar` (Morningstar-ID, f.eks. `F00000JORS`). Roboten kjører da med en gang.
 
 ## Butikk
 Kjedens felles ukeavis for REMA 1000, Extra, Europris, Rusta og Sport Outlet.
@@ -37,7 +48,7 @@ Legg en ny blokk i `MODULER` i `index.html`, med `id` (brukes i adressen) og `ik
 ```
 
 ## Tester
-Appen er utviklet med test først (TDD) fra og med 1.5.0. JavaScript-testene kjører appens eget skript i en simulert nettleser med simulert nett og klokke. Python-testene dekker innhenteren. Begge bruker samme testdata fra Norges Bank (`test/fixtures/`), så appen og innhenteren tolker svaret likt.
+Appen er utviklet med test først (TDD) fra og med 1.5.0. JavaScript-testene kjører appens eget skript i en simulert nettleser med simulert nett og klokke. Python-testene dekker innhenteren. Begge bruker samme testdata (`test/fixtures/`), så appen og innhenteren tolker svarene likt. `morningstar.json` er laget for testene i Morningstar sitt format; tallene er ikke ekte kurser.
 
 ```
 npm test
@@ -49,12 +60,14 @@ Krever Node 22 eller nyere og Python 3. Ingen avhengigheter.
 |---|---|
 | `test/parsing.test.js` | Norges Bank-tolking, tallformat, «for N min siden», ukenummer, modullista |
 | `test/app.test.js` | Valuta med reserve og feilmeldinger, butikk, generell liste, faner, adresse, oppdater-knapp |
-| `test/test_innhent.py` | Innhenteren: tolking, skriving av `data/valuta.json`, og at arbeidsflyten henger sammen |
+| `test/fond.test.js` | Fond: tolking, perioder, avkastning, kurve, visning, periodevalg, gamle og manglende data |
+| `test/test_innhent.py` | Innhenteren: Norges Bank, Morningstar (begge formater, reservevarianter, vern mot kort svar), skriving av filer, og at arbeidsflyten henger sammen |
 | `test/release.test.js` | Versjonsnummer og endringslogg er like overalt |
 
 Ved ny versjon: skriv testen først, endre så appen, og oppdater versjon i `package.json`, kommentaren øverst i `index.html`, bunnteksten og lista under.
 
 ## Versjoner
+- 1.8.0 – Ny fane Fond (DNB Global Indeks A): siste kurs, endring, avkastning 1 mnd–maks og kurve.
 - 1.7.0 – Sport Outlet lagt til under Butikk.
 - 1.6.0 – Navn, versjon og info-knapp (i) øverst til venstre, med bruksanvisning og versjonsliste.
 - 1.5.0 – Ingen endringer i hvordan appen virker. Automatiske tester lagt til.
