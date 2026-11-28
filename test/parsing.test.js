@@ -125,5 +125,5 @@ test('Butikklenker: alle er https, og hver kjede har en kundeavis-lenke', () => 
     for (const f of ['avis', 'etilbud', 'alt']) if (k[f]) assert.match(k[f], /^https:\/\//, `${k.navn}.${f}`);
     assert.ok(k.avis, `${k.navn} mangler avis-lenke`);
   }
-  assert.deepEqual(plain(b.butikker.map(k => k.navn)), ['REMA 1000', 'Extra', 'Europris', 'Rusta']);
+  assert.deepEqual(plain(b.butikker.map(k => k.navn)), ['REMA 1000', 'Extra', 'Europris', 'Rusta', 'Sport Outlet']);
 });

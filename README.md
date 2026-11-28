@@ -1,6 +1,6 @@
-# Kronekikk v1.6.0
+# Kronekikk v1.7.0
 
-Valutakurser (EUR, USD, DKK, SEK) og ukens kundeaviser fra REMA 1000, Extra, Europris og Rusta.
+Valutakurser (EUR, USD, DKK, SEK) og ukens kundeaviser fra REMA 1000, Extra, Europris, Rusta og Sport Outlet.
 
 Nettside: https://kilemann.github.io/kronesjekk.io/
 
@@ -22,8 +22,8 @@ Appen husker sist brukte fane, og laster data først når fanen åpnes.
 Hentes direkte fra Norges Banks åpne API (ingen nøkkel). DKK og SEK oppgis per 100, slik Norges Bank gjør.
 
 ## Butikk
-Kjedens felles ukeavis for REMA 1000, Extra, Europris og Rusta.
-Hver har kjedens egen kundeavis-side og siden på eTilbudsavis. For Extra er eTilbudsavis hovedlenken, fordi Coop sin side krever valg av kjede og postnummer.
+Kjedens felles ukeavis for REMA 1000, Extra, Europris, Rusta og Sport Outlet.
+Hver har kjedens egen kundeavis-side og siden på eTilbudsavis. For Extra og Sport Outlet er eTilbudsavis hovedlenken (Sport Outlet har ingen egen kundeavis-side), fordi Coop sin side krever valg av kjede og postnummer.
 Avisene ligger hos kjedene og vises ikke inne i appen (eTilbudsavis' API er bare for betalende kunder).
 
 Ny kjede: legg en linje i `butikker` under `type: "butikk"` i `MODULER`.
@@ -55,6 +55,7 @@ Krever Node 22 eller nyere og Python 3. Ingen avhengigheter.
 Ved ny versjon: skriv testen først, endre så appen, og oppdater versjon i `package.json`, kommentaren øverst i `index.html`, bunnteksten og lista under.
 
 ## Versjoner
+- 1.7.0 – Sport Outlet lagt til under Butikk.
 - 1.6.0 – Navn, versjon og info-knapp (i) øverst til venstre, med bruksanvisning og versjonsliste.
 - 1.5.0 – Ingen endringer i hvordan appen virker. Automatiske tester lagt til.
 - 1.4.0 – Faner: én fane per modul, egen adresse per fane, husker sist brukte fane

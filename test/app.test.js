@@ -66,17 +66,19 @@ test('Valuta: tom lagret fil regnes som mangel, ikke som tom liste', async () =>
   assert.match(r.env.el('panel-valuta').innerHTML, /Fikk ikke hentet kurser/);
 });
 
-test('Butikk: fire kjeder med ukens avis, uke og periode, og trygge lenker', async () => {
+test('Butikk: fem kjeder med ukens avis, uke og periode, og trygge lenker', async () => {
   const r = boot({ storage: { 'kronekikk-fane': 'butikk' } }); await flush();
   const html = r.env.el('panel-butikk').innerHTML;
   assert.match(html, /Uke 44<\/span> · 26\. okt\. – 1\. nov\./);
-  for (const navn of ['REMA 1000', 'Extra', 'Europris', 'Rusta']) assert.match(html, new RegExp(`<h3>${navn}</h3>`));
-  assert.equal((html.match(/Ukens kundeavis ↗/g) || []).length, 4);
-  assert.equal((html.match(/<a class="alt"[^>]*>eller på eTilbudsavis<\/a>/g) || []).length, 3, 'Extra har eTilbudsavis som hovedlenke');
+  for (const navn of ['REMA 1000', 'Extra', 'Europris', 'Rusta', 'Sport Outlet']) assert.match(html, new RegExp(`<h3>${navn}</h3>`));
+  assert.equal((html.match(/Ukens kundeavis ↗/g) || []).length, 5);
+  assert.equal((html.match(/<a class="alt"[^>]*>eller på eTilbudsavis<\/a>/g) || []).length, 3, 'Extra og Sport Outlet har eTilbudsavis som hovedlenke');
   assert.match(html, /eller hos Coop \(velg Extra \+ postnummer\)/);
-  assert.equal((html.match(/target="_blank" rel="noopener"/g) || []).length, 4 + 3 + 1);
+  assert.match(html, /<a class="alt" href="https:\/\/sportoutlet\.no\/"[^>]*>eller på sportoutlet\.no<\/a>/);
+  assert.equal((html.match(/target="_blank" rel="noopener"/g) || []).length, 5 + 3 + 2);
   assert.match(html, /href="https:\/\/www\.rema\.no\/kampanjer\/"/);
   assert.match(html, /href="https:\/\/etilbudsavis\.no\/Extra"/);
+  assert.match(html, /href="https:\/\/etilbudsavis\.no\/Sport-Outlet"/);
 });
 
 test('Generell liste (json-type): viser rader, og gjør innholdet ufarlig', async () => {
