@@ -1,0 +1,11 @@
+{
+  "oppdatert": "2026-11-28T13:43:56+00:00",
+  "kilde": "Morningstar",
+  "fond": {
+    "dnb-global-indeks-a": {
+      "ok": false,
+      "feil": "variant 1: URLError: <urlopen error [Errno -2] Name or service not known>; variant 2: URLError: <urlopen error [Errno -2] Name or service not known>; variant 3: URLError: <urlopen error [Errno -2] Name or service not known>; variant 4: URLError: <urlopen error [Errno -2] Name or service not known>",
+      "siste_lagrede": null
+    }
+  }
+}
